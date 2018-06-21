@@ -3,12 +3,12 @@ package org.rabo.assignment.model;
 import java.io.Serializable;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name="Records")
 public class Records implements Serializable{
 	
+	private static final long serialVersionUID = 1L;
 	private List<RaboModel> record;
 
 	@Override

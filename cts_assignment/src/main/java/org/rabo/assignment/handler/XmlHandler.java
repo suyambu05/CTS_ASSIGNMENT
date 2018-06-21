@@ -1,6 +1,6 @@
 package org.rabo.assignment.handler;
 
-import java.io.FileInputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -14,17 +14,18 @@ import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
-
-import org.rabo.assignment.model.RaboModel;
-import org.rabo.assignment.model.Records;
-import org.rabo.assignment.validation.TransactionValidation;
-
 import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
+import org.rabo.assignment.model.RaboModel;
+import org.rabo.assignment.model.Records;
+import org.rabo.assignment.validation.TransactionValidation;
+
 public class XmlHandler implements Handler{
+	private final String PATH ="src/main/resources";
+	
 	List<RaboModel> raboModelList;
 	TransactionValidation transactionValidation = new TransactionValidation();
 	List<RaboModel> filteredRaboModelList;
@@ -33,12 +34,13 @@ public class XmlHandler implements Handler{
 	public void reader(){
 		raboModelList = new ArrayList<>();
 		RaboModel raboModel = null;
+		ClassLoader classloader = getClass().getClassLoader();
 		InputStream inputStream = null;
-		
 		
 		XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
 		try {
-            XMLEventReader xmlEventReader = xmlInputFactory.createXMLEventReader(new FileInputStream("C:/cts/records.xml"));
+			inputStream = classloader.getResourceAsStream("records.xml");
+            XMLEventReader xmlEventReader = xmlInputFactory.createXMLEventReader(inputStream);
             while(xmlEventReader.hasNext()){
                 XMLEvent xmlEvent = xmlEventReader.nextEvent();
                if (xmlEvent.isStartElement()){
@@ -84,6 +86,9 @@ public class XmlHandler implements Handler{
 	private void writeXml(List<RaboModel> filteredRaboModelList) {
 		Records records = new Records();
 		List<RaboModel> raboList =new ArrayList<>();
+	    File resourcesDirectory = new File(PATH);
+	    
+		
 		for(RaboModel rabo : filteredRaboModelList){
 			RaboModel raboModel = new RaboModel();
 			raboModel.setTransactionReference(rabo.getTransactionReference());
@@ -98,7 +103,7 @@ public class XmlHandler implements Handler{
             System.out.println(" ");
             System.out.println("Errored Records from xml : ");
             marshaller.marshal(records, System.out);
-            OutputStream os = new FileOutputStream( "C:/cts/erroredRecords.xml" );
+            OutputStream os = new FileOutputStream(resourcesDirectory.getAbsolutePath()+ "/erroredRecords.xml" );
             marshaller.marshal(records, os );
         } catch (JAXBException | FileNotFoundException e) {
             e.printStackTrace();

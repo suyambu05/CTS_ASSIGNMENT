@@ -1,10 +1,9 @@
 package org.rabo.assignment.handler;
 
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,24 +11,27 @@ import org.rabo.assignment.model.RaboModel;
 import org.rabo.assignment.validation.TransactionValidation;
 
 import com.opencsv.CSVReader;
-import com.opencsv.CSVWriter;
 import com.opencsv.bean.ColumnPositionMappingStrategy;
 import com.opencsv.bean.CsvToBean;
-import com.opencsv.bean.StatefulBeanToCsv;
-import com.opencsv.bean.StatefulBeanToCsvBuilder;
+
 
 
 public class CsvHandler implements Handler{
 	private static final String[] CSV_COLUMN_HEADER = new String[]{"transactionReference","accountNumber","description","startBalanceEuro","mutation","endBalanceEuro"};
-	private static final String[] CSV_WRITER_HEADER = {"transactionReference", "description"};
+	private static final String CSV_WRITER_HEADER = "transactionReference,description";
+	private static final String COMMA_DELIMITER = ",";
+    private static final String NEW_LINE_SEPARATOR = "\n";
+	private final String PATH ="src/main/resources";
 	TransactionValidation transactionValidation = new TransactionValidation();
 	
 	@Override
 	public void reader(){
 	CSVReader csvReader = null;
 	List<RaboModel> raboModel = new ArrayList<>();
+	File resourcesDirectory = new File(PATH);
+	
 	try{
-		csvReader = new CSVReader(new FileReader("C:/cts/records.csv"),',','"',1);
+		csvReader = new CSVReader(new FileReader(resourcesDirectory.getAbsolutePath()+"/records.csv"),',','"',1);
 		ColumnPositionMappingStrategy mappingStrategy = new ColumnPositionMappingStrategy();
 		mappingStrategy.setType(RaboModel.class);
 		mappingStrategy.setColumnMapping(CSV_COLUMN_HEADER);
@@ -54,27 +56,31 @@ public class CsvHandler implements Handler{
 	
 	}
 	
-	private void writer(List<RaboModel> raboModel) throws IOException{
+	private void writer(List<RaboModel> raboModelList) throws IOException{
 		FileWriter fileWriter = null;
-		CSVWriter csvWriter = null;
-		ClassLoader classLoader = Thread.currentThread().getContextClassLoader(); 
-		InputStream is = classLoader.getResourceAsStream("failureRecordReport.csv");
-		fileWriter = new FileWriter("C:/cts/failureRecordReport.csv");
+		File resourcesDirectory = new File(PATH);
 		try{
-			csvWriter = new CSVWriter(fileWriter,
-                    CSVWriter.DEFAULT_SEPARATOR,
-                    CSVWriter.NO_QUOTE_CHARACTER,
-                    CSVWriter.DEFAULT_ESCAPE_CHARACTER,
-                    CSVWriter.DEFAULT_LINE_END);
-			csvWriter.writeNext(CSV_WRITER_HEADER);
-			 
-			for (RaboModel rabobean : raboModel) {
-				String[] data = {String.valueOf(rabobean.getTransactionReference()),rabobean.getDescription()};
-				csvWriter.writeNext(data);
-			}
+		fileWriter = new FileWriter(resourcesDirectory.getAbsolutePath()+"/failureRecordReport.csv");
+		
+		fileWriter.append(CSV_WRITER_HEADER.toString());
+		fileWriter.append(NEW_LINE_SEPARATOR);
+		
+		for(RaboModel raboModel :raboModelList){
+			fileWriter.append(String.valueOf(raboModel.getTransactionReference()));
+			fileWriter.append(COMMA_DELIMITER);
+			fileWriter.append(String.valueOf(raboModel.getDescription()));
+			fileWriter.append(NEW_LINE_SEPARATOR);
 		}
-		catch(Exception e){
-			 System.out.println(e.getMessage());
+		System.out.println("Errored records CSV File was created successfully in src/main/resources");
+		}catch(Exception e){
+			System.out.println(e.getMessage());
+		}finally{
+	            try{
+	            	fileWriter.flush();
+				    fileWriter.close();
+				}catch(IOException e){
+				    System.out.println(e.getMessage());
+				}
 		}
 	}
 	
